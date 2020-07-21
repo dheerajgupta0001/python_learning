@@ -15,3 +15,7 @@ while x<=15:
 print('x is {0}'.format(x))
 for i in range(1,x):
     print(i)
+
+name= "dheeraj"
+num=150
+print('{0} got {1} marks'.format(name,num))

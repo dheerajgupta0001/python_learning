@@ -1,4 +1,15 @@
 #print("hello word")
-name= "dheeraj"
-num=150
-print('{0} got {1} marks'.format(name,num))
+import cx_Oracle
+con= cx_Oracle.connect("system/torreto@localhost")
+cursor=con.cursor()
+print(con.version)
+sq_create = """
+CREATE TABLE task2(
+    id VARCHAR(10) NOT NULL,
+    name VARCHAR(10) NOT NULL,
+    salary NUMBER(6) NOT NULL
+)
+"""
+
+cursor.execute(sq_create)
+print("dheeraj")
