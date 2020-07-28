@@ -9,7 +9,7 @@ y1=[10,2,24,60]
 
 # create a figure and axis handle using "plt.subplots" fn
 fig, ax = plt.subplots()
-la1, = ax.plot(x,y)
+la1, = ax.plot(x,y, linestyle= 'dashdot', color='green')
 la2, = ax.plot(x1,y1)
 
 # set title
