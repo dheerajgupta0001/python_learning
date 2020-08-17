@@ -5,7 +5,7 @@
 # %%
 import pandas as pd
 
-def read_xcl(input_excel):
+def read_angle_data(input_excel):
     # read complete excel file
     xls = pd.ExcelFile(input_excel)
     #xls = pd.ExcelFile('Angle_violation.xlsm')

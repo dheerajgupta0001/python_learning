@@ -4,7 +4,7 @@
 #%%
 from datetime import datetime
 from appConfig import getConfig
-from xcel_read import read_xcl
+from read_angle_file import read_angle_data
 from insert_angle_data import push_data_to_DB
 import pandas as pd
 # test the function for usage
@@ -15,7 +15,7 @@ print(angleFolder)
 
 #%%
 # call the function for reading the excel file data
-df1 , df2= read_xcl(angleFolder)
+df1 , df2= read_angle_data(angleFolder)
 
 
 # %%
