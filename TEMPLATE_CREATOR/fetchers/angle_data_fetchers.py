@@ -1,6 +1,9 @@
 #%%
+from docx.shared import Pt
+from docxtpl import DocxTemplate, InlineImage
 import cx_Oracle
 import argparse
+import pandas as pd
 from datetime import datetime
 
 # get an instance of argument parser from argparse module
@@ -16,43 +19,40 @@ args = parser.parse_args()
 # access each command line input from the dictionary
 sDate = args.startdate
 eDate = args.enddate
-#%%
-#print('Range of Data {0} {1}'.format(sDate, eDate))
-print("sDate is: {0}".format(sDate))
-print(type(sDate))
 
-#print(type(start_date))
-#print(end_date)
+tmplPath = "assets/docxtpl/template_example.docx"
+doc = DocxTemplate(tmplPath)
 
 #%%
 # connection creation
 try:
-    con= cx_Oracle.connect("system/torreto@localhost")
-    cursor=con.cursor()
-    print(con.version)
+    connection= cx_Oracle.connect("mis_warehouse/wrldc#123@10.2.100.56:15210/ORCLWR")
+    cursor=connection.cursor()
+    print(connection.version)
     
     print("wide angle report")
-    sql_fetch =""" SELECT * FROM (select distinct wide_angle_pair, angular_limit, violation \
-        from angle_data where type = 'wide' and date_time BETWEEN TO_DATE(:col1, 'YYYY-MM-DD')\
+    sql_fetch =""" SELECT * FROM (select distinct wide_angle_pair as pair, angular_limit, violation \
+        from daily_angle_data where type = 'wide' and date_time BETWEEN TO_DATE(:col1, 'YYYY-MM-DD')\
                 and TO_DATE(:col2, 'YYYY-MM-DD')) A\
-        left JOIN (select MAX(max_degree), min(min_degree), wide_angle_pair from angle_data\
+        left JOIN (select MAX(max_degree), min(min_degree), wide_angle_pair from daily_angle_data\
             where type= 'wide' and date_time BETWEEN TO_DATE(:col1, 'YYYY-MM-DD')\
                 and TO_DATE(:col2, 'YYYY-MM-DD') GROUP BY wide_angle_pair) B\
-                    on A.wide_angle_pair = B.wide_angle_pair"""
+                    on A.pair = B.wide_angle_pair"""
 
     cursor.execute("ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD' ")
-    cursor.execute(sql_fetch, {'col1':sDate, 'col2':eDate})
-    row = cursor.fetchall()
+    df= pd.read_sql(sql_fetch, params={'col1': sDate, 'col2': eDate}, con=connection)
+    '''cursor.execute(sql_fetch, {'col1':sDate, 'col2':eDate})
+    row = cursor.fetchall()'''
     #print(row)  #records are fetched as a list of touples
 
-    for index, record in enumerate(row):
-        print(index,record)
+    '''for index, record in enumerate(row):
+        print(index,record)'''
     
     print("Adjacent angle report")
     sql_fetch =""" SELECT * FROM (select distinct wide_angle_pair, angular_limit, violation \
-        from angle_data where type = 'adj' and date_time BETWEEN TO_DATE(:col1, 'YYYY-MM-DD')\
+        from daily_angle_data where type = 'adj' and date_time BETWEEN TO_DATE(:col1, 'YYYY-MM-DD')\
                 and TO_DATE(:col2, 'YYYY-MM-DD')) A\
-        left JOIN (select MAX(max_degree), min(min_degree), wide_angle_pair from angle_data\
+        left JOIN (select MAX(max_degree), min(min_degree), wide_angle_pair from daily_angle_data\
             where type= 'adj' and date_time BETWEEN TO_DATE(:col1, 'YYYY-MM-DD')\
                 and TO_DATE(:col2, 'YYYY-MM-DD') GROUP BY wide_angle_pair) B\
                     on A.wide_angle_pair = B.wide_angle_pair"""
@@ -72,4 +72,24 @@ finally:
     # closing database cursor and connection
     if cursor is not None:
         cursor.close()
-    con.close()
+    connection.close()
+wideAngleData = []
+for i in df.index:
+    tempDict={
+        'wide_angle_pair': df['WIDE_ANGLE_PAIR'][i],
+        'angular_limit': df['ANGULAR_LIMIT'][i],
+        'violation': df['VIOLATION'][i],
+        'max_degree': df['MAX(MAX_DEGREE)'][i],
+        'min_degree ': df['MIN(MIN_DEGREE)'][i],
+    }
+    wideAngleData.append(tempDict)
+print(type(wideAngleData))
+context = {
+    'yr_str': "2020-21",
+    'wk_num': 18,
+    'st_dt': sDate,
+    'end_dt': eDate,
+    'angleData': wideAngleData
+}
+doc.render(context)
+doc.save("assets/docxtpl/report_created.docx")

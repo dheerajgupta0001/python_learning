@@ -11,7 +11,6 @@ import pandas as pd
 angleFolder, connStr= getConfig('angleFolder','connStr')
 print("angle in index file: {0}".format(angleFolder))
 print(connStr)
-print(angleFolder)
 
 #%%
 # call the function for reading the excel file data

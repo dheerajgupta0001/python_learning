@@ -6,7 +6,7 @@ import cx_Oracle
 #%%
 
 def push_data_to_DB(df, connStr):
-    # prepare list of angle data
+    #prepare list of angle dat
     #print(df['% violation'])
     df['max (degrees)'] = df['max (degrees)'].apply(lambda x: round(x,2))
     df['min (degrees)'] = df['min (degrees)'].apply(lambda x: round(x,2))
